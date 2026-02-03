@@ -288,11 +288,13 @@ async function compressImageCanvas(file, maxWidth = 2000, maxHeight = 2000, qual
 }
 
 /**
- * Create draggable list item
+ * Create draggable list item (Works on Desktop and Mobile)
  */
 function makeDraggable(container) {
     let draggedElement = null;
+    let touchStartY = 0;
     
+    // Desktop Drag and Drop
     container.addEventListener('dragstart', (e) => {
         if (e.target.classList.contains('image-item')) {
             draggedElement = e.target;
@@ -327,6 +329,45 @@ function makeDraggable(container) {
     
     container.addEventListener('drop', (e) => {
         e.preventDefault();
+    });
+    
+    // Mobile Touch Support
+    container.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.image-item')) {
+            draggedElement = e.target.closest('.image-item');
+            draggedElement.classList.add('dragging');
+            touchStartY = e.touches[0].clientY;
+        }
+    });
+    
+    container.addEventListener('touchmove', (e) => {
+        if (!draggedElement) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const allItems = Array.from(container.querySelectorAll('.image-item'));
+        
+        // Find the item at the touch location
+        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+        const targetElement = elementBelow?.closest('.image-item');
+        
+        if (targetElement && draggedElement && draggedElement !== targetElement) {
+            const draggedIndex = allItems.indexOf(draggedElement);
+            const targetIndex = allItems.indexOf(targetElement);
+            
+            if (draggedIndex < targetIndex) {
+                targetElement.parentNode.insertBefore(draggedElement, targetElement.nextSibling);
+            } else {
+                targetElement.parentNode.insertBefore(draggedElement, targetElement);
+            }
+        }
+    });
+    
+    container.addEventListener('touchend', (e) => {
+        if (draggedElement) {
+            draggedElement.classList.remove('dragging');
+            draggedElement = null;
+        }
     });
 }
 
