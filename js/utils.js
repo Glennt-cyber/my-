@@ -292,82 +292,79 @@ async function compressImageCanvas(file, maxWidth = 2000, maxHeight = 2000, qual
  */
 function makeDraggable(container) {
     let draggedElement = null;
-    let touchStartY = 0;
+    let isTouch = false;
     
-    // Desktop Drag and Drop
-    container.addEventListener('dragstart', (e) => {
-        if (e.target.classList.contains('image-item')) {
-            draggedElement = e.target;
-            e.target.classList.add('dragging');
+    // Make all image items draggable
+    const makeItemDraggable = (item) => {
+        // Desktop drag and drop
+        item.draggable = true;
+        
+        item.addEventListener('dragstart', (e) => {
+            draggedElement = item;
+            item.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
-        }
-    });
-    
-    container.addEventListener('dragend', (e) => {
-        if (e.target.classList.contains('image-item')) {
-            e.target.classList.remove('dragging');
+        });
+        
+        item.addEventListener('dragend', (e) => {
+            item.classList.remove('dragging');
             draggedElement = null;
-        }
+        });
+        
+        // Mobile touch support
+        item.addEventListener('touchstart', (e) => {
+            isTouch = true;
+            draggedElement = item;
+            item.classList.add('dragging');
+            e.preventDefault();
+        }, { passive: false });
+        
+        item.addEventListener('touchmove', (e) => {
+            if (!draggedElement || !isTouch) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const allItems = Array.from(container.querySelectorAll('.image-item'));
+            
+            // Get element below touch point
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetElement = elementBelow?.closest('.image-item');
+            
+            if (targetElement && draggedElement && draggedElement !== targetElement) {
+                const draggedIndex = allItems.indexOf(draggedElement);
+                const targetIndex = allItems.indexOf(targetElement);
+                
+                if (draggedIndex < targetIndex) {
+                    targetElement.parentNode.insertBefore(draggedElement, targetElement.nextSibling);
+                } else {
+                    targetElement.parentNode.insertBefore(draggedElement, targetElement);
+                }
+            }
+        }, { passive: false });
+        
+        item.addEventListener('touchend', (e) => {
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+            }
+            isTouch = false;
+        });
+    };
+    
+    // Initialize drag for existing items
+    container.querySelectorAll('.image-item').forEach(item => {
+        makeItemDraggable(item);
     });
     
+    // Handle desktop drag over events
     container.addEventListener('dragover', (e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        
-        if (e.target.classList.contains('image-item') && draggedElement && draggedElement !== e.target) {
-            const allItems = Array.from(container.querySelectorAll('.image-item'));
-            const draggedIndex = allItems.indexOf(draggedElement);
-            const targetIndex = allItems.indexOf(e.target);
-            
-            if (draggedIndex < targetIndex) {
-                e.target.parentNode.insertBefore(draggedElement, e.target.nextSibling);
-            } else {
-                e.target.parentNode.insertBefore(draggedElement, e.target);
-            }
+        if (draggedElement) {
+            e.dataTransfer.dropEffect = 'move';
         }
     });
     
     container.addEventListener('drop', (e) => {
         e.preventDefault();
-    });
-    
-    // Mobile Touch Support
-    container.addEventListener('touchstart', (e) => {
-        if (e.target.closest('.image-item')) {
-            draggedElement = e.target.closest('.image-item');
-            draggedElement.classList.add('dragging');
-            touchStartY = e.touches[0].clientY;
-        }
-    });
-    
-    container.addEventListener('touchmove', (e) => {
-        if (!draggedElement) return;
-        e.preventDefault();
-        
-        const touch = e.touches[0];
-        const allItems = Array.from(container.querySelectorAll('.image-item'));
-        
-        // Find the item at the touch location
-        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-        const targetElement = elementBelow?.closest('.image-item');
-        
-        if (targetElement && draggedElement && draggedElement !== targetElement) {
-            const draggedIndex = allItems.indexOf(draggedElement);
-            const targetIndex = allItems.indexOf(targetElement);
-            
-            if (draggedIndex < targetIndex) {
-                targetElement.parentNode.insertBefore(draggedElement, targetElement.nextSibling);
-            } else {
-                targetElement.parentNode.insertBefore(draggedElement, targetElement);
-            }
-        }
-    });
-    
-    container.addEventListener('touchend', (e) => {
-        if (draggedElement) {
-            draggedElement.classList.remove('dragging');
-            draggedElement = null;
-        }
     });
 }
 
