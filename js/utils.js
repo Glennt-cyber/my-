@@ -293,6 +293,7 @@ async function compressImageCanvas(file, maxWidth = 2000, maxHeight = 2000, qual
 function makeDraggable(container) {
     let draggedElement = null;
     let isTouch = false;
+    let touchStartTime = 0;
     
     // Make all image items draggable
     const makeItemDraggable = (item) => {
@@ -310,9 +311,15 @@ function makeDraggable(container) {
             draggedElement = null;
         });
         
-        // Mobile touch support
+        // Mobile touch support - Only drag from the image area, not buttons
         item.addEventListener('touchstart', (e) => {
+            // Don't start drag if touching a button
+            if (e.target.closest('button')) {
+                return;
+            }
+            
             isTouch = true;
+            touchStartTime = Date.now();
             draggedElement = item;
             item.classList.add('dragging');
             e.preventDefault();
@@ -320,6 +327,10 @@ function makeDraggable(container) {
         
         item.addEventListener('touchmove', (e) => {
             if (!draggedElement || !isTouch) return;
+            
+            // Don't prevent default if we're not actually dragging
+            if (Date.now() - touchStartTime < 200) return;
+            
             e.preventDefault();
             
             const touch = e.touches[0];
