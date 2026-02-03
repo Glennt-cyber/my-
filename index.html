@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PDF Converter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfkit@0.13.0/js/pdfkit.standalone.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📄 Image to PDF Converter</h1>
+            <p class="subtitle">Convert, Compress & Organize with Ease</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="image-to-pdf">Image to PDF</button>
+            <button class="tab-btn" data-tab="pdf-to-image">PDF to Image</button>
+            <button class="tab-btn" data-tab="compress-image">Compress Image</button>
+            <button class="tab-btn" data-tab="batch-convert">Batch Convert</button>
+        </nav>
+
+        <!-- Image to PDF Tab -->
+        <section id="image-to-pdf" class="tab-content active">
+            <div class="section-title">
+                <h2>Step 1: Upload Images</h2>
+                <p>Select multiple images to convert to PDF. You can reorder them before conversion.</p>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📸</div>
+                <h3>Drag & Drop Images Here</h3>
+                <p>or click to browse</p>
+                <input type="file" id="imageInput" accept="image/*" multiple hidden>
+            </div>
+
+            <div class="section-title">
+                <h2>Step 2: Organize Images</h2>
+                <p>Drag to reorder, remove unwanted images</p>
+            </div>
+
+            <div id="imagePreviewContainer" class="image-preview-container"></div>
+
+            <div class="pdf-options">
+                <h3>PDF Options</h3>
+                <div class="option-group">
+                    <label for="orientation">Orientation:</label>
+                    <select id="orientation">
+                        <option value="portrait">Portrait</option>
+                        <option value="landscape">Landscape</option>
+                        <option value="auto">Auto (fit image)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label for="imageScale">Image Scale:</label>
+                    <select id="imageScale">
+                        <option value="fit">Fit to Page</option>
+                        <option value="fill">Fill Page</option>
+                        <option value="original">Original Size</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label for="pdfQuality">Quality:</label>
+                    <select id="pdfQuality">
+                        <option value="high">High (300 DPI)</option>
+                        <option value="medium" selected>Medium (150 DPI)</option>
+                        <option value="low">Low (72 DPI)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label for="pdfMargin">Margin (mm):</label>
+                    <input type="number" id="pdfMargin" value="10" min="0" max="50">
+                </div>
+            </div>
+
+            <div class="section-title">
+                <h2>Step 3: Download</h2>
+            </div>
+
+            <div class="button-group">
+                <input type="text" id="pdfFilename" placeholder="Enter PDF filename" value="converted">
+                <button id="convertBtn" class="btn btn-primary" disabled>Convert to PDF</button>
+                <button id="clearBtn" class="btn btn-secondary">Clear All</button>
+            </div>
+        </section>
+
+        <!-- PDF to Image Tab -->
+        <section id="pdf-to-image" class="tab-content">
+            <div class="section-title">
+                <h2>Convert PDF to Images</h2>
+                <p>Extract images or convert pages from PDF</p>
+            </div>
+
+            <div class="upload-area" id="pdfUploadArea">
+                <div class="upload-icon">📕</div>
+                <h3>Drag & Drop PDF Here</h3>
+                <p>or click to browse</p>
+                <input type="file" id="pdfInput" accept=".pdf" hidden>
+            </div>
+
+            <div class="pdf-conversion-options" style="display: none;">
+                <div class="option-group">
+                    <label for="conversionType">Conversion Type:</label>
+                    <select id="conversionType">
+                        <option value="pages">Convert All Pages to Images</option>
+                        <option value="range">Convert Page Range</option>
+                        <option value="specific">Convert Specific Pages</option>
+                    </select>
+                </div>
+
+                <div id="pageRangeOptions" style="display: none;">
+                    <div class="option-group">
+                        <label for="startPage">Start Page:</label>
+                        <input type="number" id="startPage" value="1" min="1">
+                    </div>
+                    <div class="option-group">
+                        <label for="endPage">End Page:</label>
+                        <input type="number" id="endPage" value="1" min="1">
+                    </div>
+                </div>
+
+                <div id="specificPagesOptions" style="display: none;">
+                    <div class="option-group">
+                        <label for="specificPages">Pages (comma-separated):</label>
+                        <input type="text" id="specificPages" placeholder="e.g., 1,3,5">
+                    </div>
+                </div>
+
+                <div class="option-group">
+                    <label for="imageFormat">Image Format:</label>
+                    <select id="imageFormat">
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                        <option value="webp">WEBP</option>
+                    </select>
+                </div>
+
+                <div class="option-group">
+                    <label for="pdfScale">Scale (%):</label>
+                    <input type="number" id="pdfScale" value="100" min="50" max="300">
+                </div>
+
+                <div id="pdfPages" class="image-preview-container"></div>
+
+                <button id="convertPdfBtn" class="btn btn-primary">Convert to Images</button>
+                <button id="clearPdfBtn" class="btn btn-secondary">Clear</button>
+            </div>
+        </section>
+
+        <!-- Compress Image Tab -->
+        <section id="compress-image" class="tab-content">
+            <div class="section-title">
+                <h2>Compress Images</h2>
+                <p>Reduce file size while maintaining quality</p>
+            </div>
+
+            <div class="upload-area" id="compressUploadArea">
+                <div class="upload-icon">🗜️</div>
+                <h3>Upload Images to Compress</h3>
+                <p>or click to browse</p>
+                <input type="file" id="compressInput" accept="image/*" multiple hidden>
+            </div>
+
+            <div class="compress-options" style="display: none;">
+                <div class="option-group">
+                    <label for="targetSize">Target File Size (KB):</label>
+                    <input type="number" id="targetSize" value="500" min="10" max="10000">
+                    <small>Leave as 0 for maximum compression</small>
+                </div>
+
+                <div class="option-group">
+                    <label for="compressQuality">Quality (%):</label>
+                    <div class="slider-container">
+                        <input type="range" id="compressQuality" value="80" min="10" max="100">
+                        <span id="qualityValue">80%</span>
+                    </div>
+                </div>
+
+                <div class="option-group">
+                    <label for="maxWidth">Max Width (px):</label>
+                    <input type="number" id="maxWidth" value="2000" min="100" max="10000">
+                </div>
+
+                <div class="option-group">
+                    <label for="maxHeight">Max Height (px):</label>
+                    <input type="number" id="maxHeight" value="2000" min="100" max="10000">
+                </div>
+
+                <div class="option-group">
+                    <label for="compressFormat">Output Format:</label>
+                    <select id="compressFormat">
+                        <option value="jpg">JPG (Best for photos)</option>
+                        <option value="png">PNG (Lossless)</option>
+                        <option value="webp">WebP (Modern, smaller)</option>
+                    </select>
+                </div>
+
+                <div id="compressPreview" class="compress-preview-container"></div>
+
+                <button id="compressBtn" class="btn btn-primary">Compress Images</button>
+                <button id="clearCompressBtn" class="btn btn-secondary">Clear</button>
+            </div>
+        </section>
+
+        <!-- Batch Convert Tab -->
+        <section id="batch-convert" class="tab-content">
+            <div class="section-title">
+                <h2>Batch Process</h2>
+                <p>Process multiple images at once with same settings</p>
+            </div>
+
+            <div class="upload-area" id="batchUploadArea">
+                <div class="upload-icon">📦</div>
+                <h3>Upload Images for Batch Processing</h3>
+                <p>or click to browse</p>
+                <input type="file" id="batchInput" accept="image/*" multiple hidden>
+            </div>
+
+            <div class="batch-options" style="display: none;">
+                <div class="option-group">
+                    <label>Processing Type:</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="batchType" value="convert-to-pdf"> Convert to PDF</label>
+                        <label><input type="radio" name="batchType" value="compress"> Compress All</label>
+                        <label><input type="radio" name="batchType" value="convert-format"> Convert Format</label>
+                    </div>
+                </div>
+
+                <div id="batchFormatOptions" style="display: none;">
+                    <div class="option-group">
+                        <label for="batchFormat">Target Format:</label>
+                        <select id="batchFormat">
+                            <option value="jpg">JPG</option>
+                            <option value="png">PNG</option>
+                            <option value="webp">WebP</option>
+                            <option value="bmp">BMP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="batchFileList" class="image-preview-container"></div>
+
+                <button id="batchProcessBtn" class="btn btn-primary">Start Batch Processing</button>
+                <button id="clearBatchBtn" class="btn btn-secondary">Clear</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="progressBar" class="progress-bar" style="display: none;">
+        <div class="progress-fill" id="progressFill"></div>
+        <p id="progressText">Processing...</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/image-to-pdf.js"></script>
+    <script src="js/pdf-to-image.js"></script>
+    <script src="js/compress-image.js"></script>
+    <script src="js/batch-process.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
