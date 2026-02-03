@@ -222,6 +222,13 @@ body {
     opacity: 1;
 }
 
+/* Mobile: Always show controls on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .image-item-controls {
+        opacity: 1;
+    }
+}
+
 .image-item-controls button {
     background: var(--danger-color);
     color: white;
